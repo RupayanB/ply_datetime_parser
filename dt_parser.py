@@ -93,7 +93,10 @@ precedence = (
 
 def p_root(t):
     'root : expression'
-    t[0] = t[1]
+    if type(t[1]) is str:
+        t[0] = t[1]
+    else:
+        t[0] = "<tag start=\'" + str(t[1]) + "\'/>"
 
 
 def p_expression(t):
@@ -105,7 +108,12 @@ def p_expression(t):
     if len(t) == 2:
         t[0] = t[1]
     else:
-        t[0] = "<tag start=" + str(t[1]) + " end=" + str(t[2]) + '/>'
+        if type(t[2]) is datetime.time:
+            end_dt = datetime.datetime.combine(today,t[2])
+        else:
+            # it is already a datetime.datetime object
+            end_dt = t[2]
+        t[0] = "<tag start=\'" + str(t[1]) + "\' end=\'" + str(end_dt) + "\' />"
 
 def p_datetime(t):
     '''date_time : date time_exp'''
@@ -118,6 +126,7 @@ def p_date(t):
     if len(t) == 2:
         t[0] = t[1]
     else:
+        # special case: today 15 May 2014, ignores 'today'
         t[0] = t[2]
 
 def p_date_exp(t):
@@ -210,7 +219,7 @@ def command_line():
             s = raw_input('expr > ')   # Use raw_input on Python 2
         except EOFError:
             break
-        yacc.parse(s.lower())
+        print str(yacc.parse(s.lower()))
 
 
 if __name__ == '__main__':
