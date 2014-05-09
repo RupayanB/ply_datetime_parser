@@ -13,6 +13,7 @@ tokens = (
     'LPAREN',
     'RPAREN',
     'PLUSMINUS',
+    'OTHERS',
     )
 
 # TOKENS DEFINITIONS
@@ -52,8 +53,12 @@ def t_LITERALS(t):
     return t
 
 def t_TZ(t):
-    # r"(est)|(pst)|(utc)|(cdt)"
-    r'([a-zA-Z]{4})|([a-zA-Z]{3})'
+    r"(est)|(pst)|(utc)|(cdt)"
+    # r'([a-zA-Z]{4})|([a-zA-Z]{3})'
+    return t
+
+def t_OTHERS(t):
+    r'\S+'
     return t
 
 
@@ -61,7 +66,7 @@ t_LPAREN = r'\('
 t_RPAREN = r'\)'
 t_PLUSMINUS = r'\+|\-'
 # Ignored characters
-t_ignore = " \t,"
+t_ignore = " \t"
  
 # error handling 
 def t_error(t):
@@ -83,13 +88,21 @@ monthsMap = {'january':1,'february':2,'march':3,'april':4,'may':5,'june':6,'july
         'october':10,'november':11,'december':12}
 
 # Parsing rules
-precedence = (
-    ('left','MONTH','KWORD','YEAR','DIGITS','AMPM','LITERALS','TZ','PLUSMINUS','LPAREN','RPAREN'),
-    )
 
-# GRAMMARS
+def p_text(t):
+    '''text : text root
+            | text other_words
+            | text LITERALS
+            | empty'''
+    if len(t) == 2:
+        t[0] = ''
+    else:
+        t[0] = t[1] + ' ' + t[2] 
 
-# top level date and time expression
+
+def p_empty(t):
+    'empty :'
+    pass
 
 def p_root(t):
     'root : expression'
@@ -98,6 +111,10 @@ def p_root(t):
     else:
         t[0] = "<tag start=\'" + str(t[1]) + "\'/>"
 
+def p_other_words(t):
+    '''other_words : OTHERS'''
+    if len(t) == 2:
+        t[0] = t[1]
 
 def p_expression(t):
     '''expression : date_time
@@ -192,11 +209,10 @@ def p_timezone(t):
     t[0] = ''  
 
 def p_error(t):
-    # try:
-    #     print("Parsing error at '%s'" % t.value)
-    # except:
-    #     print "Parsing error :("
-    return
+    try:
+        print("Parsing error at '%s'" % t.value)
+    except:
+        print "Parsing error :("
 
 #Build the parser
 import ply.yacc as yacc
