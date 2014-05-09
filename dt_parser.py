@@ -52,8 +52,8 @@ def t_LITERALS(t):
     return t
 
 def t_TZ(t):
-    r"(est)|(pst)|(utc)|(cdt)"
-    # r'([a-zA-Z]{4})|([a-zA-Z]{3})'
+    # r"(est)|(pst)|(utc)|(cdt)"
+    r'([a-zA-Z]{4})|([a-zA-Z]{3})'
     return t
 
 
@@ -93,7 +93,7 @@ precedence = (
 
 def p_root(t):
     'root : expression'
-    print t[1]
+    t[0] = t[1]
 
 
 def p_expression(t):
@@ -105,7 +105,7 @@ def p_expression(t):
     if len(t) == 2:
         t[0] = t[1]
     else:
-        t[0] = "<tag start=" + str(t[1]) + '\n' + "end=" + str(t[2]) + '/>'
+        t[0] = "<tag start=" + str(t[1]) + " end=" + str(t[2]) + '/>'
 
 def p_datetime(t):
     '''date_time : date time_exp'''
@@ -128,10 +128,10 @@ def p_date_exp(t):
 def p_date_order1(t):
     '''date_order1 : MONTH DIGITS
                    | MONTH DIGITS YEAR'''
-    mm = monthsMap[t[2]]
-    dd = int(t[3])
-    if len(t) == 5:
-        yy = int(t[4])
+    mm = monthsMap[t[1]]
+    dd = int(t[2])
+    if len(t) == 4:
+        yy = int(t[3])
     else:
         yy = today.year
     date = datetime.date(yy,mm,dd)
@@ -140,9 +140,9 @@ def p_date_order1(t):
 
 def p_date_order2(t):
     'date_order2 : DIGITS MONTH YEAR'
-    dd = int(t[2])
-    mm = monthsMap[t[3]]
-    yy = int(t[4])
+    dd = int(t[1])
+    mm = monthsMap[t[2]]
+    yy = int(t[3])
     date = datetime.date(yy,mm,dd)
     t[0] = date
 
@@ -183,20 +183,50 @@ def p_timezone(t):
     t[0] = ''  
 
 def p_error(t):
-    try:
-        print("Syntax error at '%s'" % t.value)
-    except:
-        print t
+    # try:
+    #     print("Parsing error at '%s'" % t.value)
+    # except:
+    #     print "Parsing error :("
+    return
 
 #Build the parser
 import ply.yacc as yacc
+import sys, getopt
 yacc.yacc()
 
-while 1:
+def test_mode():
+    fname = open('./tests.txt')
+    count = 1
+    for line in fname:
+        print str(yacc.parse(line.strip().lower()))
+        count += 1
+
+    fname.close()
+
+def command_line():
+    while 1:
+        try:
+            print
+            s = raw_input('expr > ')   # Use raw_input on Python 2
+        except EOFError:
+            break
+        yacc.parse(s.lower())
+
+
+if __name__ == '__main__':
+    
     try:
-        print
-        s = raw_input('expr > ')   # Use raw_input on Python 2
-    except EOFError:
-        break
-    yacc.parse(s.lower())
+        opts, args = getopt.getopt(sys.argv[1:],'ct')
+    except Exception as inst:
+        print 'ERROR!' + str(inst)
+        exit(1)
+    if len(opts) == 0:
+        command_line()
+    else:
+        for opt, arg in opts:
+            if opt == '-c':
+                command_line()
+            if opt == '-t':
+                test_mode()
+
 
