@@ -21,23 +21,22 @@ tokens = (
 
 def t_DAY(t):
     r'((monday)|(tuesday)|(wednesday)|(thursday)|(friday)|(saturday)|(sunday))'
-    pass
+    return t
 
 def t_MONTH(t):
-    r"((january)|(february)|(march)|(april)|(may)|(june)|(july)|(august)|(september)|(october)|(november)|(december))"
+    r"(?i)((january)|(february)|(march)|(april)|(may)|(june)|(july)|(august)|(september)|(october)|(november)|(december))"
     return t
 
 def t_KWORD(t):
-    r"((today)|(tomorrow)|(yesterday)|(day after tomorrow)|(day before yesterday))"
+    r"(?i)((today)|(tomorrow)|(yesterday)|(day after tomorrow)|(day before yesterday))"
     return t
 
 def t_WORDS(t):
-    r"((from)|(to)|(until)|(at)|(in)|\-)"
-    #ignore these words
-    pass
+    r"(?i)\b((from)|(to)|(until)|(at)|(in)|(till)|\-)\b"
+    return t
 
 def t_AMPM(t):
-    r"(am)|(pm)"
+    r"(?i)(am)|(pm)"
     return t
 
 def t_YEAR(t):
@@ -112,7 +111,9 @@ def p_root(t):
         t[0] = "<tag start=\'" + str(t[1]) + "\'/>"
 
 def p_other_words(t):
-    '''other_words : OTHERS'''
+    '''other_words : OTHERS
+                   | DIGITS
+                   | YEAR'''
     if len(t) == 2:
         t[0] = t[1]
 
@@ -154,7 +155,7 @@ def p_date_exp(t):
 def p_date_order1(t):
     '''date_order1 : MONTH DIGITS
                    | MONTH DIGITS YEAR'''
-    mm = monthsMap[t[1]]
+    mm = monthsMap[t[1].lower()]
     dd = int(t[2])
     if len(t) == 4:
         yy = int(t[3])
@@ -167,7 +168,7 @@ def p_date_order1(t):
 def p_date_order2(t):
     'date_order2 : DIGITS MONTH YEAR'
     dd = int(t[1])
-    mm = monthsMap[t[2]]
+    mm = monthsMap[t[2].lower()]
     yy = int(t[3])
     date = datetime.date(yy,mm,dd)
     t[0] = date
@@ -175,8 +176,8 @@ def p_date_order2(t):
 
 def p_keyword(t):
     'key_word : KWORD'
-    delta = datetime.timedelta(abs(kwDiffs[t[1]]))
-    if kwDiffs[t[1]] < 0:
+    delta = datetime.timedelta(abs(kwDiffs[t[1].lower()]))
+    if kwDiffs[t[1].lower()] < 0:
         day = today - delta
     else:
         day = today + delta
@@ -220,13 +221,14 @@ import sys, getopt
 yacc.yacc()
 
 def test_mode():
-    fname = open('./tests.txt')
+    fname = raw_input("file: ")
+    fd = open(fname)
     count = 1
-    for line in fname:
-        print str(yacc.parse(line.strip().lower()))
+    for line in fd:
+        print str(yacc.parse(line.strip()))
         count += 1
 
-    fname.close()
+    fd.close()
 
 def command_line():
     while 1:
@@ -235,7 +237,7 @@ def command_line():
             s = raw_input('expr > ')   # Use raw_input on Python 2
         except EOFError:
             break
-        print str(yacc.parse(s.lower()))
+        print str(yacc.parse(s))
 
 
 if __name__ == '__main__':
