@@ -57,16 +57,13 @@ def t_DATE2(t):
 def t_DATE3(t):
     return t
 
-# @TOKEN(hhmm)
-# def t_HHMM(t):
-#     return t
 
 def t_KWORD(t):
     r'(?i)(today)|(tomorrow)|(yesterday)|(day after tomorrow)|(day before yesterday)'
     return t
 
 def t_OTHERS(t):
-    r'[\S]+'
+    r'[\S\.]+'
     return t    
 
 # Ignored characters
@@ -99,18 +96,18 @@ original = ''
 
 
 #Parsing rules
-# def p_text(t):
-#     '''text : text root
-#             | text OTHERS
-#             | empty'''
-#     if len(t) == 2:
-#         t[0] = ''
-#     else:
-#         t[0] = t[1] + ' ' + t[2] 
+def p_text(t):
+    '''text : text root
+            | text OTHERS
+            | empty'''
+    if len(t) == 2:
+        t[0] = ''
+    else:
+        t[0] = t[1] + ' ' + t[2] 
 
-# def p_empty(t):
-#     'empty :'
-#     pass
+def p_empty(t):
+    'empty :'
+    pass
 
 def p_root(t):
     '''root : expression'''
@@ -124,38 +121,42 @@ def p_root(t):
 def p_expression(t):
     '''expression : date
                   | time_exp
-                  | key_word'''
+                  | key_word
+                  | date_time'''
     if len(t) == 2:
         t[0] = t[1]
 
-# def p_datetime(t):
-#     '''date_time : date time_exp'''
-#     if len(t) == 2:
-#         t[0] = datetime.datetime.combine(t[1], t[2])
-#     else:
-#         t[0] = datetime.datetime.combine(t[1], t[3])
-
+def p_datetime(t):
+    '''date_time : date time_exp
+                 | date OTHERS time_exp'''
+    global original
+    if len(t) == 3:
+        t[0] = datetime.datetime.combine(t[1], t[2])
+    else:
+        t[0] = datetime.datetime.combine(t[1], t[3])
+        
+    
 def p_date(t):
     '''date : DATE1
             | DATE2
             | DATE3'''
     global original, month, dd, year
-    original += t[1]
+    original += t[1] + ' '
     m = re.search(month, t[1].lower()).group(0)
     mm = monthsMap[m.lower()]
-    dd = int(re.search(dd, t[1]).group(0))
+    day = int(re.search(dd, t[1]).group(0))
 
     if re.search(year, t[1]) != None:
         yy = int(re.search(year, t[1]).group(0))
     else:
         yy = today.year
-    date = datetime.date(yy,mm,dd)
+    date = datetime.date(yy,mm,day)
     t[0] = date
 
 def p_keyword(t):
     'key_word : KWORD'
     global original
-    original += t[1]
+    original += t[1] + ' '
     delta = datetime.timedelta(abs(kwDiffs[t[1].lower()]))
     if kwDiffs[t[1].lower()] < 0:
         day = today - delta
@@ -168,7 +169,7 @@ def p_time(t):
     '''time_exp : TIME
                 | TIMETZ '''
     global original, tz
-    original += t[1]
+    original += t[1] + ' '
     hhmm = r'\d+[:\.]+\d+'
     m =  re.search(hhmm, t[1]).group(0)
     tlist = [int(x) for x in re.split(':|\.', m)]
@@ -189,8 +190,8 @@ def p_time(t):
             dt = datetime.datetime.combine(today,time) - timedelta(hours=12)
             time = dt.time()
         
-    if re.search(tz, t[1]) != None:
-        m = re.search(ampm, t[1]).group(0)
+    # if re.search(tz, t[1]) != None:
+        # m = re.search(ampm, t[1]).group(0)
         #TODO insert time zone logic here
 
     t[0] = time
