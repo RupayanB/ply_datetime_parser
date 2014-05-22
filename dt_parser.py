@@ -32,7 +32,7 @@ def t_KWORD(t):
     return t
 
 def t_WORDS(t):
-    r"(?i)\b((from)|(to)|(until)|(at)|(in)|(till)|\-)\b"
+    r"(?i)(from)|(to)|(until)|(at)|(in)|(till)|\-"
     return t
 
 def t_AMPM(t):
@@ -52,7 +52,7 @@ def t_LITERALS(t):
     return t
 
 def t_TZ(t):
-    r"(est)|(pst)|(utc)|(cdt)"
+    r"(?i)(est)|(pst)|(utc)|(cdt)"
     # r'([a-zA-Z]{4})|([a-zA-Z]{3})'
     return t
 
@@ -86,12 +86,12 @@ kwDiffs = {'today':0,'yesterday':-1,'tomorrow':1,'day before yesterday':-2,'day 
 monthsMap = {'january':1,'february':2,'march':3,'april':4,'may':5,'june':6,'july':7,'august':8,'september':9,\
         'october':10,'november':11,'december':12}
 
+
 # Parsing rules
 
 def p_text(t):
     '''text : text root
             | text other_words
-            | text LITERALS
             | empty'''
     if len(t) == 2:
         t[0] = ''
@@ -111,9 +111,15 @@ def p_root(t):
         t[0] = "<tag start=\'" + str(t[1]) + "\'/>"
 
 def p_other_words(t):
-    '''other_words : OTHERS
-                   | DIGITS
-                   | YEAR'''
+    '''other_words : DIGITS
+                   | WORDS
+                   | AMPM
+                   | LITERALS
+                   | MONTH
+                   | KWORD
+                   | DAY
+                   | YEAR
+                   | OTHERS'''
     if len(t) == 2:
         t[0] = t[1]
 
@@ -122,30 +128,42 @@ def p_expression(t):
                   | time_exp 
                   | date
                   | date_time expression
-                  | time_exp expression'''
+                  | date_time WORDS expression
+                  | time_exp expression
+                  | time_exp WORDS expression'''
     if len(t) == 2:
         t[0] = t[1]
-    else:
-        if type(t[2]) is datetime.time:
-            end_dt = datetime.datetime.combine(today,t[2])
+    elif len(t) == 3:
+        startDate = t[1].date()
+        if type(t[3]) is datetime.time:
+            end_dt = datetime.datetime.combine(startDate,t[2])
         else:
             # it is already a datetime.datetime object
             end_dt = t[2]
         t[0] = "<tag start=\'" + str(t[1]) + "\' end=\'" + str(end_dt) + "\' />"
 
+    else:
+        startDate = t[1].date()
+        if type(t[3]) is datetime.time:
+            end_dt = datetime.datetime.combine(startDate,t[3])
+        else:
+            # it is already a datetime.datetime object
+            end_dt = t[3]
+        t[0] = "<tag start=\'" + str(t[1]) + "\' end=\'" + str(end_dt) + "\' />"
+
 def p_datetime(t):
-    '''date_time : date time_exp'''
-    t[0] = datetime.datetime.combine(t[1], t[2])
+    '''date_time : date time_exp
+                 | date WORDS time_exp'''
+    if len(t) == 2:
+        t[0] = datetime.datetime.combine(t[1], t[2])
+    else:
+        t[0] = datetime.datetime.combine(t[1], t[3])
 
 def p_date(t):
     '''date : key_word
-            | date_exp
-            | date date_exp'''
+            | date_exp'''
     if len(t) == 2:
         t[0] = t[1]
-    else:
-        # special case: today 15 May 2014, ignores 'today'
-        t[0] = t[2]
 
 def p_date_exp(t):
     '''date_exp : date_order1
