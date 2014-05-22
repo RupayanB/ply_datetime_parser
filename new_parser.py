@@ -13,11 +13,11 @@ time = r'(\d+[\.\:]{1}\d+\s*([apmAPM]{2})?)'
 tz = r'(((\([a-zA-Z]{3}\))|([a-zA-Z]{3})|(\([a-zA-Z]{4}\))|([a-zA-Z]{4}))\s*([\+\-]\d+)?)'
 buff = r'[\sa-zA-Z\-,\+]+'
 
-date1  = month + buff + dd    + buff + year
-date2  = dd    + buff + month + buff + year
-date3  = month + buff + dd
+date1  = month + buff + dd    + buff + year + buff
+date2  = dd    + buff + month + buff + year + buff
+date3  = month + buff + dd + buff
 
-timetz = time  + buff + tz
+timetz = time  + buff + tz + buff
 
 
 ###########################################################
@@ -127,8 +127,7 @@ def p_expression(t):
         t[0] = t[1]
 
 def p_datetime(t):
-    '''date_time : date time_exp
-                 | date OTHERS time_exp'''
+    '''date_time : date time_exp'''
     global original
     if len(t) == 3:
         t[0] = datetime.datetime.combine(t[1], t[2])
