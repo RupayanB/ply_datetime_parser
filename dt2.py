@@ -93,13 +93,6 @@ keywords = r"(?i)((today)|(tomorrow)|(yesterday)|(day after tomorrow)|(day befor
 
 original = ''
 
-precedence = (
-    ('left','WORDS'),
-    ('left', 'DIGITS','LITERALS'),
-    ('left', 'TIME'),
-    ('left','DDMM','MMDD'),
-)
-
 # Parsing rules
 
 def p_text(t):
