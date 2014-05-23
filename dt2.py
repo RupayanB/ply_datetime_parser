@@ -3,15 +3,15 @@
 import re
 from ply.lex import TOKEN
 
-# REGEX
+# Define tokens using these regular expressions:
 ddhh = r'(\d+[\.\:]{1}\d+\s*([apmAPM]{2})?)'
 tz = r"(?i)((\()?((est)|(edt)|(pst)|(utc)|(cdt)|(cest))(\))?\s*([\+\-]\d+)?)?"
 conn = r'(?i)((from)|(to)|(until)|(at)|(in)|(till)|\-)?'
-dd = r'(?i)(\d{2}|\d{1})((th)|(st)|(nd)|(rd))?'
+dd = r'(?i)(\d{2}|\d{1})((th)|(st)|(nd)|(rd))?(\sof)?'
 mm = r'(?i)((january)|(february)|(march)|(april)|(may)|(june)|(july)|(august)|(september)|(october)|(november)|(december))'
 kw = r"(?i)((today)|(tomorrow)|(yesterday)|(day after tomorrow)|(day before yesterday))"
 dig = r"[0-9]+"
-buff = r'\s*'
+buff = r'[\s\,]*'
 
 time = ddhh + buff + tz + buff + conn
 ddmm = dd + buff + mm + buff + conn
@@ -115,7 +115,7 @@ def p_root(t):
     if type(t[1]) is str:
         t[0] = t[1]
     else:
-        t[0] = "<tag start=\'" + str(t[1]) + "\' >" + original + "</tag>" 
+        t[0] = "<tag start=\'" + str(t[1]) + "\'> " + original + " </tag>" 
         original = ''
 
 def p_other_words(t):
@@ -148,7 +148,7 @@ def p_expression(t):
         else:
             # it is already a datetime.datetime object
             end_dt = t[2]
-        t[0] = "<tag start=\'" + str(t[1]) + "\' end=\'" + str(end_dt) + "\' >" + original + "</tag>" 
+        t[0] = "<tag start=\'" + str(t[1]) + "\' end=\'" + str(end_dt) + "\'> " + original + " </tag>" 
         original = ''
 
     else:
@@ -158,7 +158,7 @@ def p_expression(t):
         else:
             # it is already a datetime.datetime object
             end_dt = t[3]
-        t[0] = "<tag start=\'" + str(t[1]) + "\' end=\'" + str(end_dt) + "\' > " + original + "</tag>" 
+        t[0] = "<tag start=\'" + str(t[1]) + "\' end=\'" + str(end_dt) + "\'> " + original + " </tag>" 
         original = ''
 
 def p_datetime(t):
