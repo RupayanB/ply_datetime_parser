@@ -271,11 +271,13 @@ yacc.yacc()
 
 def test_mode():
     fname = raw_input("file: ")
-    fd = open(fname)
-    count = 1
+    try:
+        fd = open(fname)
+    except:
+        print "Invalid filename."
+        exit(1)
     for line in fd:
         print str(yacc.parse(line.strip()))
-        count += 1
 
     fd.close()
 
