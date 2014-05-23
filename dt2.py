@@ -190,7 +190,7 @@ def p_date_exp(t):
     if len(t) == 2:
         t[0] = t[1]
     else:
-        original += t[2]
+        original += t[2] + ' '
         mm = t[1].month
         dd = t[1].day
         year = re.search(r'[0-9]+',t[2]).group(0)
@@ -213,7 +213,7 @@ def p_monthday(t):
 def p_daymonth(t):
     'day_month : DDMM'
     global months, original
-    original += t[1]
+    original += t[1] + ' '
     day = re.search(r'(\d{2}|\d{1})',t[1]).group(0)
     dd = int(day)
     month = re.search(months,t[1]).group(0)
@@ -224,7 +224,7 @@ def p_daymonth(t):
 def p_keyword(t):
     'key_word : KWORD'
     global keywords, original
-    original += t[1]
+    original += t[1] + ' ' 
     kw = re.search(keywords,t[1]).group(0).lower()
     delta = datetime.timedelta(abs(kwDiffs[kw]))
     if kwDiffs[kw] < 0:
@@ -236,7 +236,7 @@ def p_keyword(t):
 def p_time(t):
     '''time_exp : TIME'''
     global original
-    original += t[1]
+    original += t[1] + ' '
 
     hhmm = r'\d+[:\.]+\d+'
     m =  re.search(hhmm, t[1]).group(0)
