@@ -91,6 +91,8 @@ monthsMap = {'january':1,'february':2,'march':3,'april':4,'may':5,'june':6,'july
 months = r'(?i)((january)|(february)|(march)|(april)|(may)|(june)|(july)|(august)|(september)|(october)|(november)|(december))'
 keywords = r"(?i)((today)|(tomorrow)|(yesterday)|(day after tomorrow)|(day before yesterday))"
 
+original = ''
+
 precedence = (
     ('left','WORDS'),
     ('left', 'DIGITS','LITERALS'),
@@ -116,10 +118,12 @@ def p_empty(t):
 
 def p_root(t):
     'root : expression'
+    global original
     if type(t[1]) is str:
         t[0] = t[1]
     else:
-        t[0] = "<tag start=\'" + str(t[1]) + "\'/>"
+        t[0] = "<tag start=\'" + str(t[1]) + "\' >" + original + "</tag>" 
+        original = ''
 
 def p_other_words(t):
     '''words : WORDS
@@ -137,6 +141,7 @@ def p_expression(t):
                   | date_time expression
                   | date_time DAY expression
                   | time_exp expression'''
+    global original
     if len(t) == 2:
         t[0] = t[1]
     elif len(t) == 3:
@@ -150,7 +155,8 @@ def p_expression(t):
         else:
             # it is already a datetime.datetime object
             end_dt = t[2]
-        t[0] = "<tag start=\'" + str(t[1]) + "\' end=\'" + str(end_dt) + "\' />"
+        t[0] = "<tag start=\'" + str(t[1]) + "\' end=\'" + str(end_dt) + "\' >" + original + "</tag>" 
+        original = ''
 
     else:
         if type(t[3]) is datetime.time:
@@ -159,7 +165,8 @@ def p_expression(t):
         else:
             # it is already a datetime.datetime object
             end_dt = t[3]
-        t[0] = "<tag start=\'" + str(t[1]) + "\' end=\'" + str(end_dt) + "\' />"
+        t[0] = "<tag start=\'" + str(t[1]) + "\' end=\'" + str(end_dt) + "\' > " + original + "</tag>" 
+        original = ''
 
 def p_datetime(t):
     '''date_time : date time_exp'''
@@ -179,10 +186,11 @@ def p_date_exp(t):
                 | day_month
                 | month_day DIGITS
                 | day_month DIGITS'''
-    
+    global original
     if len(t) == 2:
         t[0] = t[1]
     else:
+        original += t[2]
         mm = t[1].month
         dd = t[1].day
         year = re.search(r'[0-9]+',t[2]).group(0)
@@ -192,7 +200,8 @@ def p_date_exp(t):
 
 def p_monthday(t):
     'month_day : MMDD'
-    global months
+    global months, original
+    original += t[1]
     day = re.search(r'(\d{2}|\d{1})',t[1]).group(0)
     dd = int(day)
     month = re.search(months,t[1]).group(0)
@@ -203,7 +212,8 @@ def p_monthday(t):
 
 def p_daymonth(t):
     'day_month : DDMM'
-    global months
+    global months, original
+    original += t[1]
     day = re.search(r'(\d{2}|\d{1})',t[1]).group(0)
     dd = int(day)
     month = re.search(months,t[1]).group(0)
@@ -213,7 +223,8 @@ def p_daymonth(t):
 
 def p_keyword(t):
     'key_word : KWORD'
-    global keywords
+    global keywords, original
+    original += t[1]
     kw = re.search(keywords,t[1]).group(0).lower()
     delta = datetime.timedelta(abs(kwDiffs[kw]))
     if kwDiffs[kw] < 0:
@@ -224,6 +235,9 @@ def p_keyword(t):
     
 def p_time(t):
     '''time_exp : TIME'''
+    global original
+    original += t[1]
+
     hhmm = r'\d+[:\.]+\d+'
     m =  re.search(hhmm, t[1]).group(0)
     tlist = [int(x) for x in re.split(':|\.', m)]
