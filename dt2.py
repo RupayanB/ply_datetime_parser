@@ -55,7 +55,7 @@ def t_TIME(t):
     return t
 
 def t_LITERALS(t):
-    r'\.|\:|\'|\"|\,|\(|\)|\!|\?'
+    r'\.|\:|\'|\"|\,|\(|\)|\!|\?|\\|\/|\#'
     return t
 
 def t_WORDS(t):
