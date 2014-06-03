@@ -11,16 +11,17 @@ Examples:
 <tag start='2014-06-02 15:00:00' end='2014-06-02 17:00:00'> Today  3:00pm until 5:00pm  </tag>
 <tag start='2014-03-07 12:00:00' end='2014-03-11 15:00:00'> March 7  2014 at 12:00 PM - March 11  2014 at 3:00 PM  </tag>
 
-Using the tool
---------------
+Usage
+-----
 
-Default behavior:
+Default usage:
 $ ./dt2.py
 
 expr > The event is on May 05, at 15:00.
  The event is on <tag start='2014-05-05 15:00:00'> May 05, at 15:00  </tag> .
 
-Alternatively, use option -t (test mode) for evaluating a list of expressions from a file
+Alternatively, use option -t (test mode) for evaluating a list of expressions from a file:
+
 $ ./dt2.py -t
 file: test1.txt
  <tag start='2014-06-02 17:00:00'> Today  5:00pm  </tag>
