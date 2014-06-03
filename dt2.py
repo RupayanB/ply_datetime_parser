@@ -96,7 +96,8 @@ def t_error(t):
 import ply.lex as lex
 import datetime
 from datetime import timedelta
-lex.lex()
+# NOTE: remove optimize param to turn on error checking
+lex.lex(optimize=1)
 
 """
 PARSER
@@ -307,7 +308,8 @@ def p_error(t):
 #Build the parser
 import ply.yacc as yacc
 import sys, getopt
-yacc.yacc()
+# NOTE: remove debug and write_tables params to turn on error checking
+yacc.yacc(debug=0, write_tables=0)
 
 def test_mode():
     fname = raw_input("file: ")
