@@ -24,7 +24,7 @@ $ ./dt2.py
 expr > The event is on May 05, at 15:00.
  The event is on <tag start='2014-05-05 15:00:00'> May 05, at 15:00  </tag> .
 
-Alternatively, use option -t (test mode) for evaluating a list of expressions from a file:
+Alternatively, use option -t (test mode) for evaluating a list of expressions from a file (each expression on a new line):
 
 $ ./dt2.py -t
 file: test1.txt
